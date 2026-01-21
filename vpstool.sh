@@ -2,7 +2,7 @@
 
 set -eu
 
-VERSION="1.0.5"
+VERSION="1.0.8"
 COLOR_GREEN="\033[0;32m"
 COLOR_RED="\033[0;31m"
 COLOR_YELLOW="\033[0;33m"
@@ -23,8 +23,7 @@ error() {
 
 section() {
   line="=============================================================="
-  printf '%b%s%b\n' "$COLOR_YELLOW" "$line" "$COLOR_RESET"
-  printf '%b%s%b\n' "$COLOR_YELLOW" "$line" "$COLOR_RESET"
+  printf '%b%s%b\n' "\033[0;37m" "$line" "$COLOR_RESET"
 }
 
 title_main() {
@@ -702,7 +701,10 @@ node_menu() {
   while true; do
     clear
     title_sub "节点搭建合集"
-    printf '%s\n' "1) argo节点"
+    printf '%s\n' "1) argo节点 (快捷启动 argo)"
+    printf '%s\n' "2) 233boy/sing-box (快捷启动 sb)"
+    printf '%s\n' "3) 233boy/V2Ray (快捷启动 v2ray)"
+    printf '%s\n' "4) 233boy/Xray (快捷命令 xray)"
     printf '%s\n' "0) 返回上一级"
     printf '%s' "请输入你的选择: "
     read -r sub_choice
@@ -713,6 +715,30 @@ node_menu() {
           info "argo节点安装完成"
         else
           error "argo节点安装失败"
+        fi
+        pause_return
+        ;;
+      2)
+        if bash -c "bash <(wget -qO- -o- https://github.com/233boy/sing-box/raw/main/install.sh)" >/dev/null 2>&1; then
+          info "sing-box安装完成"
+        else
+          error "sing-box安装失败"
+        fi
+        pause_return
+        ;;
+      3)
+        if bash -c "bash <(wget -qO- -o- https://github.com/233boy/v2ray/raw/master/install.sh)" >/dev/null 2>&1; then
+          info "v2ray安装完成"
+        else
+          error "v2ray安装失败"
+        fi
+        pause_return
+        ;;
+      4)
+        if bash -c "bash <(wget -qO- -o- https://github.com/233boy/Xray/raw/main/install.sh)" >/dev/null 2>&1; then
+          info "xray安装完成"
+        else
+          error "xray安装失败"
         fi
         pause_return
         ;;
@@ -823,6 +849,8 @@ show_menu() {
   title_main "功能区"
   printf '%-28s %-28s\n' "1) 系统信息" "2) 系统更新"
   printf '%-28s %-28s\n' "3) 系统清理" "4) Docker管理 ▶"
+  printf '%-28s %-28s\n' "5) xykt/ip质检" "6) warp (快捷启动)"
+  printf '%-28s %-28s\n' "7) 流媒体检测" ""
   section
   title_main "合集区"
   printf '%s\n' "a) 节点搭建合集 ▶"
@@ -832,6 +860,38 @@ show_menu() {
   section
   printf '%s\n' "0) 退出"
   printf '%s' "请选择: "
+}
+
+run_ip_check() {
+  if bash -c "bash <(curl -Ls https://Check.Place) -I" >/dev/null 2>&1; then
+    info "IP质检完成"
+  else
+    error "IP质检失败"
+  fi
+  pause_return
+}
+
+run_warp_menu() {
+  if command -v wget >/dev/null 2>&1; then
+    if wget -N https://gitlab.com/fscarmen/warp/-/raw/main/menu.sh >/dev/null 2>&1 \
+      && bash menu.sh [option] [lisence/url/token] >/dev/null 2>&1; then
+      info "WARP 脚本执行完成"
+    else
+      error "WARP 脚本执行失败"
+    fi
+  else
+    error "未找到 wget，请先安装"
+  fi
+  pause_return
+}
+
+run_media_check() {
+  if bash -c "bash <(curl -L -s check.unlock.media)" >/dev/null 2>&1; then
+    info "流媒体检测完成"
+  else
+    error "流媒体检测失败"
+  fi
+  pause_return
 }
 
 case "${1-}" in
@@ -876,6 +936,15 @@ while true; do
       ;;
     4)
       docker_menu
+      ;;
+    5)
+      run_ip_check
+      ;;
+    6)
+      run_warp_menu
+      ;;
+    7)
+      run_media_check
       ;;
     a)
       node_menu
