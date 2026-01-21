@@ -9,17 +9,15 @@ COLOR_RESET="\033[0m"
 
 print_banner() {
   printf '%b' "\033[0;31m"
-  printf '%s\n' "__     __  ____   ____      _____   ___    ___   _     "
+  printf '%s\n' "__     ____  _____   ________  ____  __    "
   printf '%b' "\033[0;33m"
-  printf '%s\n' "\\ \\   / / |  _ \\ / ___|    |_   _| / _ \\  / _ \\ | |    "
+  printf '%s\n' "\\ \   / / / / __ \\ / ___/  /_  __/ / __ \\/ / / /"
   printf '%b' "\033[0;32m"
-  printf '%s\n' " \\ \\ / /  | |_) |\\___ \\      | |  | | | || | | || |    "
+  printf '%s\n' " \\ \ / / / / / / /\\__ \\    / / / / / / / / / / "
   printf '%b' "\033[0;36m"
-  printf '%s\n' "  \\ V /   |  __/  ___) |     | |  | |_| || |_| || |___ "
+  printf '%s\n' "  \\ V / / / /_/ /___/ /   / / / / /_/ / /_/ /  "
   printf '%b' "\033[0;34m"
-  printf '%s\n' "   \\_/    |_|    |____/      |_|   \\___/  \\___/ |_____|"
-  printf '%b' "\033[0;35m"
-  printf '%s\n' "           vps tool"
+  printf '%s\n' "   \\_/ /_/\\____/ /____/   /_/ /_/\\____/\\____/   "
   printf '%b' "$COLOR_RESET"
 }
 
@@ -68,7 +66,29 @@ update_script() {
   printf '%s\n' "更新成功: $VERSION -> $remote_version"
 }
 
-install_shortcut() {
+install_script() {
+  if [ "$(id -u)" != "0" ]; then
+    printf '%s\n' "需要 root 权限，请使用 sudo 运行。"
+    return 1
+  fi
+
+  install_target=/usr/local/bin/vps
+  if ! curl -fsSL https://raw.githubusercontent.com/LeoJyenn/vpstool/main/vpstool.sh -o "$install_target"; then
+    printf '%s\n' "下载安装失败。"
+    return 1
+  fi
+
+  chmod 755 "$install_target"
+  if [ -x "$install_target" ]; then
+    printf '%s\n' "安装成功，快捷命令为 vps"
+    return 0
+  fi
+
+  printf '%s\n' "安装失败。"
+  return 1
+}
+
+uninstall_script() {
   if [ "$(id -u)" != "0" ]; then
     printf '%s\n' "需要 root 权限，请使用 sudo 运行。"
     return 1
@@ -77,35 +97,25 @@ install_shortcut() {
   script_path=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)/$(basename -- "$0")
   install_target=/usr/local/bin/vps
 
-  cp "$script_path" "$install_target"
-  chmod 755 "$install_target"
-  printf '%s\n' "已安装快捷命令: vps"
-}
-
-uninstall_shortcut() {
-  if [ "$(id -u)" != "0" ]; then
-    printf '%s\n' "需要 root 权限，请使用 sudo 运行。"
-    return 1
-  fi
-
-  install_target=/usr/local/bin/vps
   if [ -e "$install_target" ]; then
     rm -f "$install_target"
-    printf '%s\n' "已卸载快捷命令: vps"
-  else
-    printf '%s\n' "未找到快捷命令: vps"
   fi
+
+  if [ -e "$script_path" ]; then
+    rm -f "$script_path"
+  fi
+
+  printf '%s\n' "已卸载脚本。"
 }
 
 show_menu() {
   print_banner
   printf '%s\n' ""
   printf '%s\n' "1) 系统信息"
-  printf '%s\n' "2) 安装快捷命令 (vps)"
   printf '%s\n' "--------------------"
-  printf '%b\n' "${COLOR_GREEN}00) 更新脚本${COLOR_RESET}"
+  printf '%b' "${COLOR_GREEN}00) 更新脚本${COLOR_RESET}"
+  printf '%b\n' "  ${COLOR_RED}88) 卸载脚本${COLOR_RESET}"
   printf '%s\n' "--------------------"
-  printf '%b\n' "${COLOR_RED}88) 卸载快捷命令 (vps)${COLOR_RESET}"
   printf '%s\n' "0) 退出"
   printf '%s' "请选择: "
 }
@@ -115,12 +125,12 @@ case "${1-}" in
     run_sysinfo
     exit 0
     ;;
-  install)
-    install_shortcut
+  uninstall)
+    uninstall_script
     exit 0
     ;;
-  uninstall)
-    uninstall_shortcut
+  install)
+    install_script
     exit 0
     ;;
   update)
@@ -144,14 +154,11 @@ while true; do
     1)
       run_sysinfo
       ;;
-    2)
-      install_shortcut
-      ;;
     00)
       update_script
       ;;
     88)
-      uninstall_shortcut
+      uninstall_script
       ;;
     0)
       exit 0
