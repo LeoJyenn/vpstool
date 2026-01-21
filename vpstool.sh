@@ -2,10 +2,11 @@
 
 set -eu
 
-VERSION="1.0.3"
+VERSION="1.0.5"
 COLOR_GREEN="\033[0;32m"
 COLOR_RED="\033[0;31m"
 COLOR_YELLOW="\033[0;33m"
+COLOR_CYAN="\033[0;36m"
 COLOR_RESET="\033[0m"
 
 info() {
@@ -21,14 +22,32 @@ error() {
 }
 
 section() {
-  printf '%s\n' "--------------------"
+  line="=============================================================="
+  printf '%b%s%b\n' "$COLOR_YELLOW" "$line" "$COLOR_RESET"
+  printf '%b%s%b\n' "$COLOR_YELLOW" "$line" "$COLOR_RESET"
+}
+
+title_main() {
+  printf '%b%s%b\n' "$COLOR_YELLOW" "$1" "$COLOR_RESET"
+}
+
+title_sub() {
+  printf '%b%s%b\n' "$COLOR_CYAN" "$1" "$COLOR_RESET"
 }
 
 pause_return() {
   if [ -t 0 ]; then
     printf '%b%s%b' "$COLOR_YELLOW" "按任意键返回..." "$COLOR_RESET"
-    read -r _
-    printf '%s\n' ""
+    if command -v stty >/dev/null 2>&1 && command -v dd >/dev/null 2>&1; then
+      stty_state=$(stty -g)
+      stty -echo -icanon time 0 min 1
+      dd bs=1 count=1 >/dev/null 2>&1
+      stty "$stty_state"
+      printf '%s\n' ""
+    else
+      read -r _
+      printf '%s\n' ""
+    fi
   fi
 }
 
@@ -253,6 +272,7 @@ docker_show_status() {
 docker_container_menu() {
   while true; do
     clear
+    title_sub "Docker容器管理"
     printf '%s\n' "Docker容器列表"
     docker ps -a
     printf '%s\n' ""
@@ -400,6 +420,7 @@ docker_container_menu() {
 docker_image_menu() {
   while true; do
     clear
+    title_sub "Docker镜像管理"
     printf '%s\n' "Docker镜像列表"
     docker image ls
     printf '%s\n' ""
@@ -458,6 +479,7 @@ docker_image_menu() {
 docker_network_menu() {
   while true; do
     clear
+    title_sub "Docker网络管理"
     printf '%s\n' "Docker网络列表"
     printf '%s\n' "------------------------------------------------------------"
     docker network ls
@@ -544,6 +566,7 @@ docker_network_menu() {
 docker_volume_menu() {
   while true; do
     clear
+    title_sub "Docker卷管理"
     printf '%s\n' "Docker卷列表"
     docker volume ls
     printf '%s\n' ""
@@ -590,16 +613,14 @@ docker_menu() {
 
   while true; do
     clear
-    printf '%s\n' "▶ Docker管理器"
+    title_sub "▶ Docker管理器"
     printf '%s\n' "------------------------"
     printf '%s\n' "1. 安装更新Docker环境"
     printf '%s\n' "------------------------"
     printf '%s\n' "2. 查看Docker全局状态"
     printf '%s\n' "------------------------"
-    printf '%s\n' "3. Docker容器管理 ▶"
-    printf '%s\n' "4. Docker镜像管理 ▶"
-    printf '%s\n' "5. Docker网络管理 ▶"
-    printf '%s\n' "6. Docker卷管理 ▶"
+    printf '%-28s %-28s\n' "3. Docker容器管理 ▶" "4. Docker镜像管理 ▶"
+    printf '%-28s %-28s\n' "5. Docker网络管理 ▶" "6. Docker卷管理 ▶"
     printf '%s\n' "------------------------"
     printf '%s\n' "7. 清理无用的docker容器和镜像网络数据卷"
     printf '%s\n' "------------------------"
@@ -677,12 +698,50 @@ docker_menu() {
   done
 }
 
+node_menu() {
+  while true; do
+    clear
+    title_sub "节点搭建合集"
+    printf '%s\n' "1) argo节点"
+    printf '%s\n' "0) 返回上一级"
+    printf '%s' "请输入你的选择: "
+    read -r sub_choice
+
+    case "$sub_choice" in
+      1)
+        if bash -c "bash <(curl -sL https://raw.githubusercontent.com/LeoJyenn/node/main/argo.sh/argo.sh)" >/dev/null 2>&1; then
+          info "argo节点安装完成"
+        else
+          error "argo节点安装失败"
+        fi
+        pause_return
+        ;;
+      0)
+        break
+        ;;
+      *)
+        warn "无效选择: $sub_choice"
+        pause_return
+        ;;
+    esac
+  done
+}
+
 get_remote_version() {
   curl -fsSL https://raw.githubusercontent.com/LeoJyenn/vpstool/main/vpstool.sh \
     | awk -F'"' '/^VERSION=/{print $2; exit}'
 }
 
 update_script() {
+  require_root || return 1
+
+  update_target=/usr/local/bin/vps
+  if [ ! -w "$update_target" ]; then
+    error "请先安装到 /usr/local/bin/vps 再更新"
+    pause_return
+    return 1
+  fi
+
   remote_version=$(get_remote_version || true)
   if [ -z "${remote_version:-}" ]; then
     error "获取远程版本失败。"
@@ -711,15 +770,8 @@ update_script() {
     return 1
   fi
 
-  if [ ! -w "$0" ]; then
-    rm -f "$tmp_file"
-    error "无写入权限，请使用 sudo 运行。"
-    pause_return
-    return 1
-  fi
-
-  mv "$tmp_file" "$0"
-  chmod 755 "$0"
+  mv "$tmp_file" "$update_target"
+  chmod 755 "$update_target"
   info "更新成功: $VERSION -> $remote_version"
   pause_return
 }
@@ -768,10 +820,12 @@ show_menu() {
   clear
   print_banner
   printf '%s\n' ""
-  printf '%s\n' "1) 系统信息"
-  printf '%s\n' "2) 系统更新"
-  printf '%s\n' "3) 系统清理"
-  printf '%s\n' "4) Docker管理 ▶"
+  title_main "功能区"
+  printf '%-28s %-28s\n' "1) 系统信息" "2) 系统更新"
+  printf '%-28s %-28s\n' "3) 系统清理" "4) Docker管理 ▶"
+  section
+  title_main "合集区"
+  printf '%s\n' "a) 节点搭建合集 ▶"
   section
   printf '%b' "${COLOR_GREEN}00) 更新脚本${COLOR_RESET}"
   printf '%b\n' "  ${COLOR_RED}88) 卸载脚本${COLOR_RESET}"
@@ -822,6 +876,9 @@ while true; do
       ;;
     4)
       docker_menu
+      ;;
+    a)
+      node_menu
       ;;
     00)
       update_script
