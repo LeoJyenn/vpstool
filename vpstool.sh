@@ -2,7 +2,7 @@
 
 set -eu
 
-VERSION="1.0.8"
+VERSION="1.0.9"
 COLOR_GREEN="\033[0;32m"
 COLOR_RED="\033[0;31m"
 COLOR_YELLOW="\033[0;33m"
@@ -87,31 +87,31 @@ update_system() {
   require_root || return 1
 
   if command -v apt >/dev/null 2>&1; then
-    if apt-get update >/dev/null 2>&1 && apt-get upgrade -y >/dev/null 2>&1; then
+    if apt-get update && apt-get upgrade -y; then
       info "系统更新完成"
     else
       error "系统更新失败"
     fi
   elif command -v dnf >/dev/null 2>&1; then
-    if dnf check-update >/dev/null 2>&1 && dnf upgrade -y >/dev/null 2>&1; then
+    if dnf check-update && dnf upgrade -y; then
       info "系统更新完成"
     else
       error "系统更新失败"
     fi
   elif command -v yum >/dev/null 2>&1; then
-    if yum check-update >/dev/null 2>&1 && yum upgrade -y >/dev/null 2>&1; then
+    if yum check-update && yum upgrade -y; then
       info "系统更新完成"
     else
       error "系统更新失败"
     fi
   elif command -v apk >/dev/null 2>&1; then
-    if apk update >/dev/null 2>&1 && apk upgrade >/dev/null 2>&1; then
+    if apk update && apk upgrade; then
       info "系统更新完成"
     else
       error "系统更新失败"
     fi
   elif command -v pacman >/dev/null 2>&1; then
-    if pacman -Syu --noconfirm >/dev/null 2>&1; then
+    if pacman -Syu --noconfirm; then
       info "系统更新完成"
     else
       error "系统更新失败"
@@ -130,21 +130,21 @@ clean_system() {
 
   if command -v apt >/dev/null 2>&1; then
     clean_ok=true
-    apt autoremove --purge -y >/dev/null 2>&1 || clean_ok=false
-    apt clean -y >/dev/null 2>&1 || clean_ok=false
-    apt autoclean -y >/dev/null 2>&1 || clean_ok=false
+    apt autoremove --purge -y || clean_ok=false
+    apt clean -y || clean_ok=false
+    apt autoclean -y || clean_ok=false
     rc_packages=$(dpkg -l | awk '/^rc/ {print $2}')
     if [ -n "$rc_packages" ]; then
-      apt remove --purge -y $rc_packages >/dev/null 2>&1 || clean_ok=false
+      apt remove --purge -y $rc_packages || clean_ok=false
     fi
     if command -v journalctl >/dev/null 2>&1; then
-      journalctl --vacuum-time=1s >/dev/null 2>&1 || clean_ok=false
-      journalctl --vacuum-size=50M >/dev/null 2>&1 || clean_ok=false
+      journalctl --vacuum-time=1s || clean_ok=false
+      journalctl --vacuum-size=50M || clean_ok=false
     fi
     kernel_packages=$(dpkg -l | awk '/^ii linux-(image|headers)-[^ ]+/{print $2}' \
       | grep -v "$(uname -r | sed 's/-.*//')")
     if [ -n "$kernel_packages" ]; then
-      apt remove --purge -y $kernel_packages >/dev/null 2>&1 || clean_ok=false
+      apt remove --purge -y $kernel_packages || clean_ok=false
     fi
     if [ "$clean_ok" = true ]; then
       info "系统清理完成"
@@ -153,15 +153,15 @@ clean_system() {
     fi
   elif command -v yum >/dev/null 2>&1; then
     clean_ok=true
-    yum autoremove -y >/dev/null 2>&1 || clean_ok=false
-    yum clean all >/dev/null 2>&1 || clean_ok=false
+    yum autoremove -y || clean_ok=false
+    yum clean all || clean_ok=false
     if command -v journalctl >/dev/null 2>&1; then
-      journalctl --vacuum-time=1s >/dev/null 2>&1 || clean_ok=false
-      journalctl --vacuum-size=50M >/dev/null 2>&1 || clean_ok=false
+      journalctl --vacuum-time=1s || clean_ok=false
+      journalctl --vacuum-size=50M || clean_ok=false
     fi
     kernel_packages=$(rpm -q kernel | grep -v "$(uname -r)")
     if [ -n "$kernel_packages" ]; then
-      yum remove -y $kernel_packages >/dev/null 2>&1 || clean_ok=false
+      yum remove -y $kernel_packages || clean_ok=false
     fi
     if [ "$clean_ok" = true ]; then
       info "系统清理完成"
@@ -170,15 +170,15 @@ clean_system() {
     fi
   elif command -v dnf >/dev/null 2>&1; then
     clean_ok=true
-    dnf autoremove -y >/dev/null 2>&1 || clean_ok=false
-    dnf clean all >/dev/null 2>&1 || clean_ok=false
+    dnf autoremove -y || clean_ok=false
+    dnf clean all || clean_ok=false
     if command -v journalctl >/dev/null 2>&1; then
-      journalctl --vacuum-time=1s >/dev/null 2>&1 || clean_ok=false
-      journalctl --vacuum-size=50M >/dev/null 2>&1 || clean_ok=false
+      journalctl --vacuum-time=1s || clean_ok=false
+      journalctl --vacuum-size=50M || clean_ok=false
     fi
     kernel_packages=$(rpm -q kernel | grep -v "$(uname -r)")
     if [ -n "$kernel_packages" ]; then
-      dnf remove -y $kernel_packages >/dev/null 2>&1 || clean_ok=false
+      dnf remove -y $kernel_packages || clean_ok=false
     fi
     if [ "$clean_ok" = true ]; then
       info "系统清理完成"
@@ -187,20 +187,20 @@ clean_system() {
     fi
   elif command -v apk >/dev/null 2>&1; then
     clean_ok=true
-    apk autoremove -y >/dev/null 2>&1 || clean_ok=false
-    apk clean >/dev/null 2>&1 || clean_ok=false
+    apk autoremove -y || clean_ok=false
+    apk clean || clean_ok=false
     orphan_packages=$(apk info -e | grep '^r' | awk '{print $1}')
     if [ -n "$orphan_packages" ]; then
-      apk del $orphan_packages >/dev/null 2>&1 || clean_ok=false
+      apk del $orphan_packages || clean_ok=false
     fi
     if command -v journalctl >/dev/null 2>&1; then
-      journalctl --vacuum-time=1s >/dev/null 2>&1 || clean_ok=false
-      journalctl --vacuum-size=50M >/dev/null 2>&1 || clean_ok=false
+      journalctl --vacuum-time=1s || clean_ok=false
+      journalctl --vacuum-size=50M || clean_ok=false
     fi
     old_kernels=$(apk info -vv | grep -E 'linux-[0-9]' | grep -v "$(uname -r)" \
       | awk '{print $1}')
     if [ -n "$old_kernels" ]; then
-      apk del $old_kernels >/dev/null 2>&1 || clean_ok=false
+      apk del $old_kernels || clean_ok=false
     fi
     if [ "$clean_ok" = true ]; then
       info "系统清理完成"
@@ -210,9 +210,9 @@ clean_system() {
   elif command -v pacman >/dev/null 2>&1; then
     clean_ok=true
     if pacman -Qtdq >/dev/null 2>&1; then
-      pacman -Rns --noconfirm $(pacman -Qtdq 2>/dev/null) >/dev/null 2>&1 || clean_ok=false
+      pacman -Rns --noconfirm $(pacman -Qtdq 2>/dev/null) || clean_ok=false
     fi
-    pacman -Scc --noconfirm >/dev/null 2>&1 || clean_ok=false
+    pacman -Scc --noconfirm || clean_ok=false
     if [ "$clean_ok" = true ]; then
       info "系统清理完成"
     else
@@ -232,16 +232,16 @@ docker_install() {
     warn "Docker 已经安装"
     return 0
   fi
-  if ! curl -fsSL https://get.docker.com | sh >/dev/null 2>&1; then
+  if ! curl -fsSL https://get.docker.com | sh; then
     error "Docker 安装失败"
     return 1
   fi
   if [ -e /usr/libexec/docker/cli-plugins/docker-compose ]; then
-    ln -s /usr/libexec/docker/cli-plugins/docker-compose /usr/local/bin/docker-compose >/dev/null 2>&1 || true
+    ln -s /usr/libexec/docker/cli-plugins/docker-compose /usr/local/bin/docker-compose || true
   fi
   if command -v systemctl >/dev/null 2>&1; then
-    systemctl start docker >/dev/null 2>&1 || true
-    systemctl enable docker >/dev/null 2>&1 || true
+    systemctl start docker || true
+    systemctl enable docker || true
   fi
   info "Docker 安装完成"
 }
@@ -295,7 +295,7 @@ docker_container_menu() {
       1)
         printf '%s' "请输入创建命令: "
         read -r dockername
-        if sh -c "$dockername" >/dev/null 2>&1; then
+        if sh -c "$dockername"; then
           info "容器创建完成"
         else
           error "容器创建失败"
@@ -305,7 +305,7 @@ docker_container_menu() {
       2)
         printf '%s' "请输入容器名: "
         read -r dockername
-        if docker start "$dockername" >/dev/null 2>&1; then
+        if docker start "$dockername"; then
           info "容器启动完成"
         else
           error "容器启动失败"
@@ -315,7 +315,7 @@ docker_container_menu() {
       3)
         printf '%s' "请输入容器名: "
         read -r dockername
-        if docker stop "$dockername" >/dev/null 2>&1; then
+        if docker stop "$dockername"; then
           info "容器停止完成"
         else
           error "容器停止失败"
@@ -325,7 +325,7 @@ docker_container_menu() {
       4)
         printf '%s' "请输入容器名: "
         read -r dockername
-        if docker rm -f "$dockername" >/dev/null 2>&1; then
+        if docker rm -f "$dockername"; then
           info "容器删除完成"
         else
           error "容器删除失败"
@@ -335,7 +335,7 @@ docker_container_menu() {
       5)
         printf '%s' "请输入容器名: "
         read -r dockername
-        if docker restart "$dockername" >/dev/null 2>&1; then
+        if docker restart "$dockername"; then
           info "容器重启完成"
         else
           error "容器重启失败"
@@ -343,7 +343,7 @@ docker_container_menu() {
         pause_return
         ;;
       6)
-        if docker start $(docker ps -a -q) >/dev/null 2>&1; then
+        if docker start $(docker ps -a -q); then
           info "容器启动完成"
         else
           error "容器启动失败"
@@ -351,7 +351,7 @@ docker_container_menu() {
         pause_return
         ;;
       7)
-        if docker stop $(docker ps -q) >/dev/null 2>&1; then
+        if docker stop $(docker ps -q); then
           info "容器停止完成"
         else
           error "容器停止失败"
@@ -363,7 +363,7 @@ docker_container_menu() {
         read -r choice
         case "$choice" in
           [Yy])
-            if docker rm -f $(docker ps -a -q) >/dev/null 2>&1; then
+            if docker rm -f $(docker ps -a -q); then
               info "容器删除完成"
             else
               error "容器删除失败"
@@ -373,7 +373,7 @@ docker_container_menu() {
         esac
         ;;
       9)
-        if docker restart $(docker ps -q) >/dev/null 2>&1; then
+        if docker restart $(docker ps -q); then
           info "容器重启完成"
         else
           error "容器重启失败"
@@ -437,7 +437,7 @@ docker_image_menu() {
       1|2)
         printf '%s' "请输入镜像名: "
         read -r dockername
-        if docker pull "$dockername" >/dev/null 2>&1; then
+        if docker pull "$dockername"; then
           info "镜像更新完成"
         else
           error "镜像更新失败"
@@ -447,7 +447,7 @@ docker_image_menu() {
       3)
         printf '%s' "请输入镜像名: "
         read -r dockername
-        if docker rmi -f "$dockername" >/dev/null 2>&1; then
+        if docker rmi -f "$dockername"; then
           info "镜像删除完成"
         else
           error "镜像删除失败"
@@ -459,7 +459,7 @@ docker_image_menu() {
         read -r choice
         case "$choice" in
           [Yy])
-            if docker rmi -f $(docker images -q) >/dev/null 2>&1; then
+            if docker rmi -f $(docker images -q); then
               info "镜像删除完成"
             else
               error "镜像删除失败"
@@ -514,7 +514,7 @@ docker_network_menu() {
       1)
         printf '%s' "设置新网络名: "
         read -r dockernetwork
-        if docker network create "$dockernetwork" >/dev/null 2>&1; then
+        if docker network create "$dockernetwork"; then
           info "网络创建完成"
         else
           error "网络创建失败"
@@ -526,7 +526,7 @@ docker_network_menu() {
         read -r dockernetwork
         printf '%s' "那些容器加入该网络: "
         read -r dockername
-        if docker network connect "$dockernetwork" "$dockername" >/dev/null 2>&1; then
+        if docker network connect "$dockernetwork" "$dockername"; then
           info "加入网络完成"
         else
           error "加入网络失败"
@@ -538,7 +538,7 @@ docker_network_menu() {
         read -r dockernetwork
         printf '%s' "那些容器退出该网络: "
         read -r dockername
-        if docker network disconnect "$dockernetwork" "$dockername" >/dev/null 2>&1; then
+        if docker network disconnect "$dockernetwork" "$dockername"; then
           info "退出网络完成"
         else
           error "退出网络失败"
@@ -548,7 +548,7 @@ docker_network_menu() {
       4)
         printf '%s' "请输入要删除的网络名: "
         read -r dockernetwork
-        if docker network rm "$dockernetwork" >/dev/null 2>&1; then
+        if docker network rm "$dockernetwork"; then
           info "网络删除完成"
         else
           error "网络删除失败"
@@ -583,7 +583,7 @@ docker_volume_menu() {
       1)
         printf '%s' "设置新卷名: "
         read -r dockerjuan
-        if docker volume create "$dockerjuan" >/dev/null 2>&1; then
+        if docker volume create "$dockerjuan"; then
           info "卷创建完成"
         else
           error "卷创建失败"
@@ -593,7 +593,7 @@ docker_volume_menu() {
       2)
         printf '%s' "输入删除卷名: "
         read -r dockerjuan
-        if docker volume rm "$dockerjuan" >/dev/null 2>&1; then
+        if docker volume rm "$dockerjuan"; then
           info "卷删除完成"
         else
           error "卷删除失败"
@@ -656,7 +656,7 @@ docker_menu() {
         read -r choice
         case "$choice" in
           [Yy])
-            if docker system prune -af --volumes >/dev/null 2>&1; then
+            if docker system prune -af --volumes; then
               info "Docker 清理完成"
             else
               error "Docker 清理失败"
@@ -670,19 +670,19 @@ docker_menu() {
         read -r choice
         case "$choice" in
           [Yy])
-            docker rm $(docker ps -a -q) >/dev/null 2>&1 || true
-            docker rmi $(docker images -q) >/dev/null 2>&1 || true
-            docker network prune -f >/dev/null 2>&1 || true
+            docker rm $(docker ps -a -q) || true
+            docker rmi $(docker images -q) || true
+            docker network prune -f || true
             if command -v apt >/dev/null 2>&1; then
-              apt remove -y docker docker.io docker-ce docker-ce-cli containerd.io >/dev/null 2>&1 || true
+              apt remove -y docker docker.io docker-ce docker-ce-cli containerd.io || true
             elif command -v yum >/dev/null 2>&1; then
-              yum remove -y docker docker-ce docker-ce-cli containerd.io >/dev/null 2>&1 || true
+              yum remove -y docker docker-ce docker-ce-cli containerd.io || true
             elif command -v dnf >/dev/null 2>&1; then
-              dnf remove -y docker docker-ce docker-ce-cli containerd.io >/dev/null 2>&1 || true
+              dnf remove -y docker docker-ce docker-ce-cli containerd.io || true
             elif command -v apk >/dev/null 2>&1; then
-              apk del docker >/dev/null 2>&1 || true
+              apk del docker || true
             elif command -v pacman >/dev/null 2>&1; then
-              pacman -Rns --noconfirm docker >/dev/null 2>&1 || true
+              pacman -Rns --noconfirm docker || true
             fi
             rm -rf /var/lib/docker
             info "Docker 卸载完成"
@@ -711,7 +711,7 @@ node_menu() {
 
     case "$sub_choice" in
       1)
-        if bash -c "bash <(curl -sL https://raw.githubusercontent.com/LeoJyenn/node/main/argo.sh/argo.sh)" >/dev/null 2>&1; then
+        if bash -c "bash <(curl -sL https://raw.githubusercontent.com/LeoJyenn/node/main/argo.sh/argo.sh)"; then
           info "argo节点安装完成"
         else
           error "argo节点安装失败"
@@ -719,7 +719,7 @@ node_menu() {
         pause_return
         ;;
       2)
-        if bash -c "bash <(wget -qO- -o- https://github.com/233boy/sing-box/raw/main/install.sh)" >/dev/null 2>&1; then
+        if bash -c "bash <(wget -qO- -o- https://github.com/233boy/sing-box/raw/main/install.sh)"; then
           info "sing-box安装完成"
         else
           error "sing-box安装失败"
@@ -727,7 +727,7 @@ node_menu() {
         pause_return
         ;;
       3)
-        if bash -c "bash <(wget -qO- -o- https://github.com/233boy/v2ray/raw/master/install.sh)" >/dev/null 2>&1; then
+        if bash -c "bash <(wget -qO- -o- https://github.com/233boy/v2ray/raw/master/install.sh)"; then
           info "v2ray安装完成"
         else
           error "v2ray安装失败"
@@ -735,7 +735,7 @@ node_menu() {
         pause_return
         ;;
       4)
-        if bash -c "bash <(wget -qO- -o- https://github.com/233boy/Xray/raw/main/install.sh)" >/dev/null 2>&1; then
+        if bash -c "bash <(wget -qO- -o- https://github.com/233boy/Xray/raw/main/install.sh)"; then
           info "xray安装完成"
         else
           error "xray安装失败"
@@ -849,7 +849,7 @@ show_menu() {
   title_main "功能区"
   printf '%-28s %-28s\n' "1) 系统信息" "2) 系统更新"
   printf '%-28s %-28s\n' "3) 系统清理" "4) Docker管理 ▶"
-  printf '%-28s %-28s\n' "5) xykt/ip质检" "6) warp (快捷启动)"
+  printf '%-28s %-28s\n' "5) ip质检" "6) warp (快捷启动warp)"
   printf '%-28s %-28s\n' "7) 流媒体检测" ""
   section
   title_main "合集区"
@@ -863,7 +863,7 @@ show_menu() {
 }
 
 run_ip_check() {
-  if bash -c "bash <(curl -Ls https://Check.Place) -I" >/dev/null 2>&1; then
+  if bash -c "bash <(curl -Ls https://Check.Place) -I"; then
     info "IP质检完成"
   else
     error "IP质检失败"
@@ -873,8 +873,8 @@ run_ip_check() {
 
 run_warp_menu() {
   if command -v wget >/dev/null 2>&1; then
-    if wget -N https://gitlab.com/fscarmen/warp/-/raw/main/menu.sh >/dev/null 2>&1 \
-      && bash menu.sh [option] [lisence/url/token] >/dev/null 2>&1; then
+    if wget -N https://gitlab.com/fscarmen/warp/-/raw/main/menu.sh \
+      && bash menu.sh [option] [lisence/url/token]; then
       info "WARP 脚本执行完成"
     else
       error "WARP 脚本执行失败"
@@ -886,7 +886,7 @@ run_warp_menu() {
 }
 
 run_media_check() {
-  if bash -c "bash <(curl -L -s check.unlock.media)" >/dev/null 2>&1; then
+  if bash -c "bash <(curl -L -s check.unlock.media)"; then
     info "流媒体检测完成"
   else
     error "流媒体检测失败"
