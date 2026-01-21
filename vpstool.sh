@@ -704,42 +704,26 @@ node_menu() {
     printf '%s\n' "1) argo节点 (快捷启动 argo)"
     printf '%s\n' "2) 233boy/sing-box (快捷启动 sb)"
     printf '%s\n' "3) 233boy/V2Ray (快捷启动 v2ray)"
-    printf '%s\n' "4) 233boy/Xray (快捷命令 xray)"
+    printf '%s\n' "4) 233boy/Xray (快捷启动xray)"
     printf '%s\n' "0) 返回上一级"
     printf '%s' "请输入你的选择: "
     read -r sub_choice
 
     case "$sub_choice" in
       1)
-        if bash -c "bash <(curl -sL https://raw.githubusercontent.com/LeoJyenn/node/main/argo.sh/argo.sh)"; then
-          info "argo节点安装完成"
-        else
-          error "argo节点安装失败"
-        fi
+        bash -c "bash <(curl -sL https://raw.githubusercontent.com/LeoJyenn/node/main/argo.sh/argo.sh)"
         pause_return
         ;;
       2)
-        if bash -c "bash <(wget -qO- -o- https://github.com/233boy/sing-box/raw/main/install.sh)"; then
-          info "sing-box安装完成"
-        else
-          error "sing-box安装失败"
-        fi
+        bash -c "bash <(wget -qO- -o- https://github.com/233boy/sing-box/raw/main/install.sh)"
         pause_return
         ;;
       3)
-        if bash -c "bash <(wget -qO- -o- https://github.com/233boy/v2ray/raw/master/install.sh)"; then
-          info "v2ray安装完成"
-        else
-          error "v2ray安装失败"
-        fi
+        bash -c "bash <(wget -qO- -o- https://github.com/233boy/v2ray/raw/master/install.sh)"
         pause_return
         ;;
       4)
-        if bash -c "bash <(wget -qO- -o- https://github.com/233boy/Xray/raw/main/install.sh)"; then
-          info "xray安装完成"
-        else
-          error "xray安装失败"
-        fi
+        bash -c "bash <(wget -qO- -o- https://github.com/233boy/Xray/raw/main/install.sh)"
         pause_return
         ;;
       0)
@@ -847,10 +831,10 @@ show_menu() {
   print_banner
   printf '%s\n' ""
   title_main "功能区"
-  printf '%-28s %-28s\n' "1) 系统信息" "2) 系统更新"
-  printf '%-28s %-28s\n' "3) 系统清理" "4) Docker管理 ▶"
-  printf '%-28s %-28s\n' "5) ip质检" "6) warp (快捷启动warp)"
-  printf '%-28s %-28s\n' "7) 流媒体检测" ""
+  printf '%-32s %-32s\n' "1) 系统信息" "2) 系统更新"
+  printf '%-32s %-32s\n' "3) 系统清理" "4) Docker管理 ▶"
+  printf '%-32s %-32s\n' "5) ip质检" "6) warp (快捷启动warp)"
+  printf '%-32s %-32s\n' "7) 流媒体检测" ""
   section
   title_main "合集区"
   printf '%s\n' "a) 节点搭建合集 ▶"
@@ -863,22 +847,14 @@ show_menu() {
 }
 
 run_ip_check() {
-  if bash -c "bash <(curl -Ls https://Check.Place) -I"; then
-    info "IP质检完成"
-  else
-    error "IP质检失败"
-  fi
+  bash -c "bash <(curl -Ls https://Check.Place) -I"
   pause_return
 }
 
 run_warp_menu() {
   if command -v wget >/dev/null 2>&1; then
-    if wget -N https://gitlab.com/fscarmen/warp/-/raw/main/menu.sh \
-      && bash menu.sh [option] [lisence/url/token]; then
-      info "WARP 脚本执行完成"
-    else
-      error "WARP 脚本执行失败"
-    fi
+    wget -N https://gitlab.com/fscarmen/warp/-/raw/main/menu.sh \
+      && bash menu.sh [option] [lisence/url/token]
   else
     error "未找到 wget，请先安装"
   fi
@@ -886,11 +862,7 @@ run_warp_menu() {
 }
 
 run_media_check() {
-  if bash -c "bash <(curl -L -s check.unlock.media)"; then
-    info "流媒体检测完成"
-  else
-    error "流媒体检测失败"
-  fi
+  bash -c "bash <(curl -L -s check.unlock.media)"
   pause_return
 }
 
