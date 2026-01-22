@@ -2,7 +2,7 @@
 
 set -eu
 
-VERSION="1.0.9"
+VERSION="1.1.0"
 COLOR_GREEN="\033[0;32m"
 COLOR_RED="\033[0;31m"
 COLOR_YELLOW="\033[0;33m"
@@ -701,10 +701,12 @@ node_menu() {
   while true; do
     clear
     title_sub "节点搭建合集"
-    printf '%s\n' "1) argo节点 (快捷启动 argo)"
-    printf '%s\n' "2) 233boy/sing-box (快捷启动 sb)"
-    printf '%s\n' "3) 233boy/V2Ray (快捷启动 v2ray)"
-    printf '%s\n' "4) 233boy/Xray (快捷启动xray)"
+    printf '%s\n' "1) argo节点 (快捷命令 argo)"
+    printf '%s\n' "2) 233boy/sing-box (快捷命令 sb)"
+    printf '%s\n' "3) 233boy/V2Ray (快捷命令 v2ray)"
+    printf '%s\n' "4) 233boy/Xray (快捷命令xray)"
+    printf '%s\n' "5) Hysteria2 (快捷命令 hy)"
+    printf '%s\n' "6) MTProto (快捷命令 mtp)"
     printf '%s\n' "0) 返回上一级"
     printf '%s' "请输入你的选择: "
     read -r sub_choice
@@ -724,6 +726,14 @@ node_menu() {
         ;;
       4)
         bash -c "bash <(wget -qO- -o- https://github.com/233boy/Xray/raw/main/install.sh)"
+        pause_return
+        ;;
+      5)
+        bash -c "bash <(curl -sL https://raw.githubusercontent.com/LeoJyenn/node/main/Hysteria2.sh/Hysteria2.sh)"
+        pause_return
+        ;;
+      6)
+        bash -c "bash <(curl -sL https://raw.githubusercontent.com/LeoJyenn/node/main/MTProto.sh/MTProto.sh)"
         pause_return
         ;;
       0)
@@ -833,11 +843,11 @@ show_menu() {
   title_main "功能区"
   printf '%-32s %-32s\n' "1) 系统信息" "2) 系统更新"
   printf '%-32s %-32s\n' "3) 系统清理" "4) Docker管理 ▶"
-  printf '%-32s %-32s\n' "5) ip质检" "6) warp (快捷启动warp)"
+  printf '%-32s %-32s\n' "5) ip质检" "6) warp (快捷命令warp)"
   printf '%-32s %-32s\n' "7) 流媒体检测" ""
   section
   title_main "合集区"
-  printf '%s\n' "a) 节点搭建合集 ▶"
+  printf '%-32s %-32s\n' "a) 节点搭建合集 ▶" ""
   section
   printf '%b' "${COLOR_GREEN}00) 更新脚本${COLOR_RESET}"
   printf '%b\n' "  ${COLOR_RED}88) 卸载脚本${COLOR_RESET}"
