@@ -793,7 +793,8 @@ update_script() {
   mv "$tmp_file" "$update_target"
   chmod 755 "$update_target"
   info "更新成功: $VERSION -> $remote_version"
-  pause_return
+  info "正在重启脚本..."
+  exec "$update_target" || error "重启失败，请手动运行 vps"
 }
 
 install_script() {
@@ -850,7 +851,8 @@ show_menu() {
   printf '%-32s %-32s\n' "a) 节点搭建合集 ▶" ""
   section
   printf '%b' "${COLOR_GREEN}00) 更新脚本${COLOR_RESET}"
-  printf '%b\n' "  ${COLOR_RED}88) 卸载脚本${COLOR_RESET}"
+  printf '%b' "  ${COLOR_RED}88) 卸载脚本${COLOR_RESET}"
+  printf '%b\n' "    ${COLOR_GREEN}当前版本[v${VERSION}]${COLOR_RESET}"
   section
   printf '%s\n' "0) 退出"
   printf '%s' "请选择: "
