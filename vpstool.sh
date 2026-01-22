@@ -776,11 +776,21 @@ update_script() {
   fi
 
   tmp_file=$(mktemp)
-  if ! curl -fsSL https://raw.githubusercontent.com/LeoJyenn/vpstool/main/vpstool.sh -o "$tmp_file"; then
-    rm -f "$tmp_file"
-    error "下载更新失败。"
-    pause_return
-    return 1
+  if command -v tr >/dev/null 2>&1; then
+    if ! curl -fsSL https://raw.githubusercontent.com/LeoJyenn/vpstool/main/vpstool.sh \
+      | tr -d '\r' > "$tmp_file"; then
+      rm -f "$tmp_file"
+      error "下载更新失败。"
+      pause_return
+      return 1
+    fi
+  else
+    if ! curl -fsSL https://raw.githubusercontent.com/LeoJyenn/vpstool/main/vpstool.sh -o "$tmp_file"; then
+      rm -f "$tmp_file"
+      error "下载更新失败。"
+      pause_return
+      return 1
+    fi
   fi
 
   if ! grep -q "^VERSION=\"$remote_version\"" "$tmp_file"; then
@@ -801,10 +811,19 @@ install_script() {
   require_root || return 1
 
   install_target=/usr/local/bin/vps
-  if ! curl -fsSL https://raw.githubusercontent.com/LeoJyenn/vpstool/main/vpstool.sh -o "$install_target"; then
-    error "下载安装失败。"
-    pause_return
-    return 1
+  if command -v tr >/dev/null 2>&1; then
+    if ! curl -fsSL https://raw.githubusercontent.com/LeoJyenn/vpstool/main/vpstool.sh \
+      | tr -d '\r' > "$install_target"; then
+      error "下载安装失败。"
+      pause_return
+      return 1
+    fi
+  else
+    if ! curl -fsSL https://raw.githubusercontent.com/LeoJyenn/vpstool/main/vpstool.sh -o "$install_target"; then
+      error "下载安装失败。"
+      pause_return
+      return 1
+    fi
   fi
 
   chmod 755 "$install_target"

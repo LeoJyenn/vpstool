@@ -3,7 +3,7 @@
 ## 一键安装
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/LeoJyenn/vpstool/main/vpstool.sh | sudo bash -s -- install
+curl -fsSL https://raw.githubusercontent.com/LeoJyenn/vpstool/main/vpstool.sh | tr -d '\r' | sudo bash -s -- install
 ```
 
 安装后使用：
